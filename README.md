@@ -1,10 +1,10 @@
-# OpenShift migration Rollack quiesce sample data
+# OpenShift migration Rollback Quiesce sample data
 
 A set of YAML files which set up a new namespace in OCP and create objects useful for Quiesce testing (part of OpenShift migration rollback).
 
 ## Objects and their quiesce method
 
-| Type | Quiesced by |
+| Type | Un/quiesced by |
 |---|---|
 | Deployment, StatefulSets, ReplicaSet and related | .Spec.Replicas count |
 |  DaemonSet | .Spec.Template.Spec.NodeSelector selector update |
