@@ -1,1 +1,102 @@
 ---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: mig-rollback-samples
+  labels:
+    name: mig-rollback-samples
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: pi-cronjob
+  namespace: mig-rollback-samples
+spec:
+  schedule: "*/1 * * * *"  
+  concurrencyPolicy: "Replace" 
+  startingDeadlineSeconds: 200 
+  suspend: false            
+  successfulJobsHistoryLimit: 3 
+  failedJobsHistoryLimit: 1     
+  jobTemplate:             
+    spec:
+      template:
+        metadata:
+          labels:          
+            parent: "cronjobpi"
+        spec:
+          containers:
+          - name: pi
+            image: perl
+            command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+          restartPolicy: OnFailure
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: hello-daemonset
+  namespace: mig-rollback-samples
+spec:
+  selector:
+      matchLabels:
+        name: hello-daemonset 
+  template:
+    metadata:
+      labels:
+        name: hello-daemonset 
+    spec:
+      nodeSelector: 
+        role: worker
+      containers:
+      - image: openshift/hello-openshift
+        imagePullPolicy: Always
+        name: registry
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      serviceAccount: default
+      terminationGracePeriodSeconds: 10
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "frontend-dc"
+  namespace: "mig-rollback-samples"
+spec:
+  template: 
+    metadata:
+      labels:
+        name: "frontend-dc"
+    spec:
+      containers:
+        - name: "helloworld"
+          image: "openshift/origin-ruby-sample"
+          ports:
+            - containerPort: 8080
+              protocol: "TCP"
+  replicas: 2
+  paused: false 
+  revisionHistoryLimit: 2 
+  minReadySeconds: 0
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-job
+  namespace: mig-rollback-samples
+spec:
+  parallelism: 1    
+  completions: 1    
+  activeDeadlineSeconds: 1800 
+  backoffLimit: 6   
+  template:         
+    metadata:
+      name: pi-job
+    spec:
+      containers:
+      - name: pi
+        image: perl
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: OnFailure

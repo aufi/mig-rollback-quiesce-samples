@@ -1,0 +1,22 @@
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "frontend-dc"
+  namespace: "mig-rollback-samples"
+spec:
+  template: 
+    metadata:
+      labels:
+        name: "frontend-dc"
+    spec:
+      containers:
+        - name: "helloworld"
+          image: "openshift/origin-ruby-sample"
+          ports:
+            - containerPort: 8080
+              protocol: "TCP"
+  replicas: 2
+  paused: false 
+  revisionHistoryLimit: 2 
+  minReadySeconds: 0

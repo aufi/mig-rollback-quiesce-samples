@@ -1,0 +1,7 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: mig-rollback-samples
+  labels:
+    name: mig-rollback-samples

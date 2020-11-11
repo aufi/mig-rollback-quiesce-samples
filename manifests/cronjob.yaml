@@ -1,0 +1,25 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: pi-cronjob
+  namespace: mig-rollback-samples
+spec:
+  schedule: "*/1 * * * *"  
+  concurrencyPolicy: "Replace" 
+  startingDeadlineSeconds: 200 
+  suspend: false            
+  successfulJobsHistoryLimit: 3 
+  failedJobsHistoryLimit: 1     
+  jobTemplate:             
+    spec:
+      template:
+        metadata:
+          labels:          
+            parent: "cronjobpi"
+        spec:
+          containers:
+          - name: pi
+            image: perl
+            command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+          restartPolicy: OnFailure
